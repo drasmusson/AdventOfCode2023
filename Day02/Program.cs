@@ -30,13 +30,13 @@ int GetMinPower(string line)
     foreach (var rule in GetRules())
     {
         var cs = line.Split(" " + rule.color);
-        result *= GetMinAmmount(rule.color, cs);
+        result *= GetMinAmount(rule.color, cs);
     }
 
     return result;
 }
 
-int GetMinAmmount(string color, string[] hands)
+int GetMinAmount(string color, string[] hands)
 {
     var min = 1;
     for (int i = 0; i < hands.Length - 1; i++)
