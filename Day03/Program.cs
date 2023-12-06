@@ -77,12 +77,9 @@ int PartTwo(string[] input)
     foreach (var gearCandidate in gearCandidates)
     {
         foreach (var coord in gearCandidate.GetNeighbours())
-        {
             foreach (var number in numbers)
-            {
                 if (number.Coords.Any(x => x == coord)) number.Touched = true;
-            }
-        }
+                
         if (numbers.Count(x => x.Touched) == 2)
         {
             var ratio = numbers.First(x => x.Touched).Value * numbers.Last(x => x.Touched).Value;
@@ -101,7 +98,7 @@ record Number
 {
     public Number(int x, int y, int value)
     {
-        Coords = new List<Coord>{ new Coord(x, y), new Coord(x + 1, y), new Coord(x + 2, y) };
+        Coords = Enumerable.Range(0, value.ToString().Length).Select(i => new Coord(x + i, y)).ToList();
         Value = value;
     }
     public List<Coord> Coords { get; }
