@@ -1,8 +1,48 @@
 ﻿
+
+
 var input = File.ReadAllLines("Input.txt");
 
-var one = PartOne(input);
-Console.WriteLine(one);
+// var one = PartOne(input);
+// Console.WriteLine(one);
+
+var two = PartTwo(input);
+Console.WriteLine(two);
+
+long PartTwo(string[] input)
+{
+    var seeds = ParseSeedRanges(input[0]);
+    var maps = ParseMaps(input);
+
+    foreach (var seed in seeds)
+    {
+        
+    }
+
+    return 0;
+}
+
+long FindPath((long start, long end) seedRange, List<Map> maps)
+{
+    return 0;
+}
+
+List<(long start, long end)> ParseSeedRanges(string input)
+{
+    var seedRanges = new List<(long start, long end)>();
+
+    var numbers = input.Split("seeds: ")[1].Split(" ").Select(x => long.Parse(x)).ToList();
+    for (int i = 0; i < numbers.Count - 1; i += 2)
+    {
+        if (i + 1 < numbers.Count)
+        {
+            var pair = (numbers[i], numbers[i] + numbers[i + 1] - 1);
+            seedRanges.Add(pair);
+        }
+    }
+    return seedRanges;
+}
+
 
 long PartOne(string[] input)
 {
@@ -61,7 +101,7 @@ List<long> ParseSeeds(string input)
 
 class Map
 {
-    List<Instruction> Instructions { get; }
+    public List<Instruction> Instructions { get; }
 
     public Map(List<Instruction> instructions)
     {
