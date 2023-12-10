@@ -1,6 +1,4 @@
 ﻿
-
-
 var input = File.ReadAllLines("Input.txt");
 
 // var one = PartOne(input);
@@ -14,17 +12,53 @@ long PartTwo(string[] input)
     var seeds = ParseSeedRanges(input[0]);
     var maps = ParseMaps(input);
 
+    var destinations = new List<long>();
+
     foreach (var seed in seeds)
     {
-        
+        destinations.Add(FindLowestDestination(seed, maps));
     }
 
-    return 0;
+    return destinations.Min();
 }
 
-long FindPath((long start, long end) seedRange, List<Map> maps)
+long FindLowestDestination((long start, long end) seed, List<Map> maps)
 {
-    return 0;
+    var sources = new Queue<(long start, long end)>();
+    sources.Enqueue(seed);
+    var destinations = new List<(long start, long end)>();
+    foreach (var map in maps)
+    {
+        foreach (var destination in destinations)
+            sources.Enqueue(destination);
+        
+        destinations.Clear();
+
+        while (sources.Count > 0)
+        {
+            var source = sources.Dequeue();
+            foreach (var instruction in map.Instructions)
+            {
+                var overlap = GetOverlap(source, instruction.SourceRange);
+                var destinationRange = instruction.GetDestination(overlap);
+                destinations.Add(destinationRange);
+            }
+        }
+    }
+    var lowest = destinations.Min(x => x.start);
+    return lowest;
+}
+
+(long sourceStart, long sourceEnd) GetOverlap((long start, long end) seedRange, (long start, long end) sourceRange)
+{
+    if (seedRange.start > sourceRange.end) return seedRange;
+    if (seedRange.end < sourceRange.start) return seedRange;
+    // if (seedRange.start >= sourceRange.start && seedRange.start <= seedRange.end) return ()
+    var overlapStart = Math.Max(seedRange.start, sourceRange.start);
+    var overlapEnd = Math.Min(seedRange.end, sourceRange.end);
+    if (overlapStart <= overlapEnd) return (overlapStart, overlapEnd);
+
+    return seedRange;
 }
 
 List<(long start, long end)> ParseSeedRanges(string input)
@@ -129,11 +163,24 @@ class Instruction
 {
     public (long start, long end) DestinationRange { get; }
     public (long start, long end) SourceRange { get; }
+    private long Length { get; }
 
     public Instruction(string parameters)
     {
         var numbers = parameters.Split(" ").Select(x => long.Parse(x)).ToList();
         DestinationRange = (numbers[0], numbers[0] + numbers[2] - 1);
         SourceRange = (numbers[1], numbers[1] + numbers[2] - 1);
+        Length = numbers[2];
+    }
+
+    internal (long start, long end) GetDestination((long start, long end) sourceRange)
+    {
+        if (sourceRange.end < SourceRange.start || sourceRange.start > SourceRange.end)
+            return sourceRange;
+
+        var i = DestinationRange.start - SourceRange.start;
+        var destination = (sourceRange.start + i, sourceRange.end + i);
+
+        return destination;
     }
 }
