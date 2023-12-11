@@ -1,8 +1,8 @@
 ﻿
 var input = File.ReadAllLines("Input.txt");
 
-// var one = PartOne(input);
-// Console.WriteLine(one);
+var one = PartOne(input);
+Console.WriteLine(one);
 
 var two = PartTwo(input);
 Console.WriteLine(two);
@@ -24,41 +24,89 @@ long PartTwo(string[] input)
 
 long FindLowestDestination((long start, long end) seed, List<Map> maps)
 {
-    var sources = new Queue<(long start, long end)>();
-    sources.Enqueue(seed);
-    var destinations = new List<(long start, long end)>();
+    var destinations = new List<(long, long)> { seed };
+    
     foreach (var map in maps)
     {
-        foreach (var destination in destinations)
-            sources.Enqueue(destination);
-        
-        destinations.Clear();
+        var sources = new Queue<(long start, long end)>();
+        foreach (var dest in destinations)
+            sources.Enqueue(dest);
 
+        destinations.Clear();
+        
         while (sources.Count > 0)
         {
             var source = sources.Dequeue();
-            foreach (var instruction in map.Instructions)
+            (long source_start, long source_end) = source;
+            var i = 0;
+            for (i = 0; i < map.Instructions.Count; i++)
             {
-                var overlap = GetOverlap(source, instruction.SourceRange);
-                var destinationRange = instruction.GetDestination(overlap);
-                destinations.Add(destinationRange);
+                var instruction = map.Instructions[i];
+                if (source.start >= instruction.SourceRange.start && source.end <= instruction.SourceRange.end)
+                {
+                    destinations.Add(instruction.GetDestination(source));
+                    break;
+                }
+                if (source.end < instruction.SourceRange.start || source.start > instruction.SourceRange.end)
+                    continue;
+                if (source.start < instruction.SourceRange.start)
+                {
+                    sources.Enqueue(new (source.start, instruction.SourceRange.start - 1));
+                    sources.Enqueue(new (instruction.SourceRange.start, source.end));
+                    break;
+
+                }
+                if (source.end > instruction.SourceRange.end)
+                {
+                    sources.Enqueue(new (instruction.SourceRange.end + 1, source.end));
+                    sources.Enqueue(new (source.start, instruction.SourceRange.end));
+                    break;
+                }
             }
+            if (i == map.Instructions.Count)
+                destinations.Add(source);
         }
     }
-    var lowest = destinations.Min(x => x.start);
+                
+    var lowest = GetLowestLocation(destinations);
     return lowest;
 }
 
-(long sourceStart, long sourceEnd) GetOverlap((long start, long end) seedRange, (long start, long end) sourceRange)
+long GetLowestLocation(List<(long start, long end)> locations)
 {
-    if (seedRange.start > sourceRange.end) return seedRange;
-    if (seedRange.end < sourceRange.start) return seedRange;
-    // if (seedRange.start >= sourceRange.start && seedRange.start <= seedRange.end) return ()
-    var overlapStart = Math.Max(seedRange.start, sourceRange.start);
-    var overlapEnd = Math.Min(seedRange.end, sourceRange.end);
-    if (overlapStart <= overlapEnd) return (overlapStart, overlapEnd);
+    var lowest = locations[0].start;
+    foreach (var location in locations)
+        lowest = Math.Min(location.start, lowest);
 
-    return seedRange;
+    return lowest;
+}
+
+List<(long sourceStart, long sourceEnd)> GetOverlap((long start, long end) source, (long start, long end) map)
+{
+    var ranges = new List<(long start, long end)>();
+    if (source.start > map.end || source.end < map.start) 
+    {
+        ranges.Add(source);
+        return ranges;
+    }
+    if (source.start >= map.start && source.end <= map.end)
+    {
+        ranges.Add(source);
+        return ranges;
+    }
+    if (source.start < map.start) 
+    {
+        ranges.Add((map.start, source.end));
+        ranges.Add((source.start, map.start - 1));
+    }
+    if (source.end > map.end)
+    {
+        ranges.Add((source.start, map.end));
+        ranges.Add((map.end + 1, source.end));
+    }
+    
+
+    return ranges;
 }
 
 List<(long start, long end)> ParseSeedRanges(string input)
@@ -163,14 +211,12 @@ class Instruction
 {
     public (long start, long end) DestinationRange { get; }
     public (long start, long end) SourceRange { get; }
-    private long Length { get; }
 
     public Instruction(string parameters)
     {
         var numbers = parameters.Split(" ").Select(x => long.Parse(x)).ToList();
         DestinationRange = (numbers[0], numbers[0] + numbers[2] - 1);
         SourceRange = (numbers[1], numbers[1] + numbers[2] - 1);
-        Length = numbers[2];
     }
 
     internal (long start, long end) GetDestination((long start, long end) sourceRange)
