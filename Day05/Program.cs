@@ -54,7 +54,6 @@ long FindLowestDestination((long start, long end) seed, List<Map> maps)
                     sources.Enqueue(new (source.start, instruction.SourceRange.start - 1));
                     sources.Enqueue(new (instruction.SourceRange.start, source.end));
                     break;
-
                 }
                 if (source.end > instruction.SourceRange.end)
                 {
@@ -79,34 +78,6 @@ long GetLowestLocation(List<(long start, long end)> locations)
         lowest = Math.Min(location.start, lowest);
 
     return lowest;
-}
-
-List<(long sourceStart, long sourceEnd)> GetOverlap((long start, long end) source, (long start, long end) map)
-{
-    var ranges = new List<(long start, long end)>();
-    if (source.start > map.end || source.end < map.start) 
-    {
-        ranges.Add(source);
-        return ranges;
-    }
-    if (source.start >= map.start && source.end <= map.end)
-    {
-        ranges.Add(source);
-        return ranges;
-    }
-    if (source.start < map.start) 
-    {
-        ranges.Add((map.start, source.end));
-        ranges.Add((source.start, map.start - 1));
-    }
-    if (source.end > map.end)
-    {
-        ranges.Add((source.start, map.end));
-        ranges.Add((map.end + 1, source.end));
-    }
-    
-
-    return ranges;
 }
 
 List<(long start, long end)> ParseSeedRanges(string input)
