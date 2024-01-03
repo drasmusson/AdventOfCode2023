@@ -363,3 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 .vscode/launch.json
 .vscode/tasks.json
+
+# Input files in AdventOfCode
+Input.txt
